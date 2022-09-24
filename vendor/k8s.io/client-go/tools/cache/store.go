@@ -158,6 +158,8 @@ func (c *cache) Add(obj interface{}) error {
 
 // Update sets an item in the cache to its updated state.
 func (c *cache) Update(obj interface{}) error {
+	// skeeey: [go-client-informer] for sharedIndexInformer, key is <namespace>/<name>,
+	// if <namespace> is empty (cluster scope), it's just <name>.
 	key, err := c.keyFunc(obj)
 	if err != nil {
 		return KeyError{obj, err}

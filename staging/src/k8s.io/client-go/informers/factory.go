@@ -260,7 +260,6 @@ type SharedInformerFactory interface {
 	// client.
 	InformerFor(obj runtime.Object, newFunc internalinterfaces.NewInformerFunc) cache.SharedIndexInformer
 
-	// skeeey: factory model, k8s supported resource, each resouce is organized by GroupVersionResouce
 	Admissionregistration() admissionregistration.Interface
 	Internal() apiserverinternal.Interface
 	Apps() apps.Interface

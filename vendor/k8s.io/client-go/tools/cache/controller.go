@@ -131,6 +131,7 @@ func (c *controller) Run(stopCh <-chan struct{}) {
 		<-stopCh
 		c.config.Queue.Close()
 	}()
+	// skeeey: [go-client-informer] the reflector
 	r := NewReflector(
 		c.config.ListerWatcher,
 		c.config.ObjectType,
@@ -150,8 +151,10 @@ func (c *controller) Run(stopCh <-chan struct{}) {
 
 	var wg wait.Group
 
+	// skeeey: [go-client-informer] start the reflector to list and watch
 	wg.StartWithChannel(stopCh, r.Run)
 
+	// skeeey: [go-client-informer] start a until loop to pop the objects from the queue and dispatch them
 	wait.Until(c.processLoop, time.Second, stopCh)
 	wg.Wait()
 }
@@ -181,6 +184,7 @@ func (c *controller) LastSyncResourceVersion() string {
 // also be helpful.
 func (c *controller) processLoop() {
 	for {
+		// skeeey: [go-client-informer] process the poped object, why need this converter?
 		obj, err := c.config.Queue.Pop(PopProcessFunc(c.config.Process))
 		if err != nil {
 			if err == ErrFIFOClosed {
@@ -410,7 +414,7 @@ func NewTransformingIndexerInformer(
 func processDeltas(
 	// Object which receives event notifications from the given deltas
 	handler ResourceEventHandler,
-	clientState Store,
+	clientState Store, // skeeey: [go-client-informer] for sharedInformer, it's the indexer of it
 	transformer TransformFunc,
 	deltas Deltas,
 ) error {

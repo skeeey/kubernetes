@@ -137,6 +137,7 @@ func (f *sharedInformerFactory) Start(stopCh <-chan struct{}) {
 		return
 	}
 
+	// skeeey: [go-client-informer] start all registed informer
 	for informerType, informer := range f.informers {
 		if !f.startedInformers[informerType] {
 			f.wg.Add(1)
@@ -260,7 +261,7 @@ type SharedInformerFactory interface {
 	// client.
 	InformerFor(obj runtime.Object, newFunc internalinterfaces.NewInformerFunc) cache.SharedIndexInformer
 
-	// skeeey: factory model, k8s supported resource, each resouce is organized by GroupVersionResouce
+	// skeeey: [go-client-informer] factory model, k8s supported resource, each resouce is organized by GroupVersionResouce
 	Admissionregistration() admissionregistration.Interface
 	Internal() apiserverinternal.Interface
 	Apps() apps.Interface

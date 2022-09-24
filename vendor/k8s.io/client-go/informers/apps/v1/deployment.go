@@ -82,9 +82,11 @@ func (f *deploymentInformer) defaultInformer(client kubernetes.Interface, resync
 }
 
 func (f *deploymentInformer) Informer() cache.SharedIndexInformer {
+	// skeeey: [go-client-informer] register this informer to factory 
 	return f.factory.InformerFor(&appsv1.Deployment{}, f.defaultInformer)
 }
 
 func (f *deploymentInformer) Lister() v1.DeploymentLister {
+	// skeeey: [go-client-informer] based on the indexer to get the object from cache
 	return v1.NewDeploymentLister(f.Informer().GetIndexer())
 }

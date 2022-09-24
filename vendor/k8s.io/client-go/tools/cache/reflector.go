@@ -256,6 +256,7 @@ func (r *Reflector) resyncChan() (<-chan time.Time, func() bool) {
 func (r *Reflector) ListAndWatch(stopCh <-chan struct{}) error {
 	klog.V(3).Infof("Listing and watching %v from %s", r.expectedTypeName, r.name)
 
+	// skeeey: [go-client-informer] list the objects from kube-apiserver to init the Delta FIFO queue
 	err := r.list(stopCh)
 	if err != nil {
 		return err
@@ -264,6 +265,7 @@ func (r *Reflector) ListAndWatch(stopCh <-chan struct{}) error {
 	resyncerrc := make(chan error, 1)
 	cancelCh := make(chan struct{})
 	defer close(cancelCh)
+	// skeeey: [go-client-informer] resync the queue periodly (factory.defaultResync)
 	go func() {
 		resyncCh, cleanup := r.resyncChan()
 		defer func() {
@@ -290,6 +292,7 @@ func (r *Reflector) ListAndWatch(stopCh <-chan struct{}) error {
 	}()
 
 	retry := NewRetryWithDeadline(r.MaxInternalErrorRetryDuration, time.Minute, apierrors.IsInternalError, r.clock)
+	// skeeey: [go-client-informer] start to watch the objects (http chunked)
 	for {
 		// give the stopCh a chance to stop the loop, even in case of continue statements further down on errors
 		select {
@@ -356,6 +359,8 @@ func (r *Reflector) ListAndWatch(stopCh <-chan struct{}) error {
 // the resource version can be used for further progress notification (aka. watch).
 func (r *Reflector) list(stopCh <-chan struct{}) error {
 	var resourceVersion string
+	// skeeey: [go-client-informer] the resourceVersion is "0" by default, that means to get the current objects
+	// form kube-apiserver
 	options := metav1.ListOptions{ResourceVersion: r.relistResourceVersion()}
 
 	initTrace := trace.New("Reflector ListAndWatch", trace.Field{Key: "name", Value: r.name})
@@ -401,6 +406,7 @@ func (r *Reflector) list(stopCh <-chan struct{}) error {
 
 		list, paginatedResult, err = pager.List(context.Background(), options)
 		if isExpiredError(err) || isTooLargeResourceVersionError(err) {
+			// skeeey: [go-client-informer] errors happened, set resourceVersion to ""
 			r.setIsLastSyncResourceVersionUnavailable(true)
 			// Retry immediately if the resource version used to list is unavailable.
 			// The pager already falls back to full list if paginated list calls fail due to an "Expired" error on
@@ -451,6 +457,7 @@ func (r *Reflector) list(stopCh <-chan struct{}) error {
 		return fmt.Errorf("unable to understand list result %#v (%v)", list, err)
 	}
 	initTrace.Step("Objects extracted")
+	// skeeey: [go-client-informer] save the objects to Delta FIFO queue
 	if err := r.syncWith(items, resourceVersion); err != nil {
 		return fmt.Errorf("unable to sync list result: %v", err)
 	}

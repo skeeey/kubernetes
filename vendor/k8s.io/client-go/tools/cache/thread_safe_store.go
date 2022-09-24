@@ -61,12 +61,25 @@ type ThreadSafeStore interface {
 
 // threadSafeMap implements ThreadSafeStore
 type threadSafeMap struct {
-	lock  sync.RWMutex
+	lock sync.RWMutex
+	// skeeey: [go-client-informer] key is the object <namespace>/<name> ,
+	// if <namespace> is empty (cluster scope), it's just object <name>.
 	items map[string]interface{}
 
 	// indexers maps a name to an IndexFunc
+	// skeeey: [go-client-informer] map[string]IndexFunc
+	// this map is <indexName> -> <indexFunc>
+	// by default: cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}
 	indexers Indexers
 	// indices maps a name to an Index
+	// skeeey: [go-client-informer] map[string]Index, Index is: map[string]sets.String
+	// this map is <indexName> -> index key  -> the object key set
+	// the index key is cauculated by indexFunc
+	// deployments
+	// namespace -> ns1 -> ns1/deploy1, ns1/deploy2
+	//			 -> ns2 -> ns1/deploy1, ns1/deploy2
+	// nodes
+	// namespace -> "" -> node1, node2
 	indices Indices
 }
 

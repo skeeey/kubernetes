@@ -88,6 +88,7 @@ func (s deploymentNamespaceLister) List(selector labels.Selector) (ret []*v1.Dep
 
 // Get retrieves the Deployment from the indexer for a given namespace and name.
 func (s deploymentNamespaceLister) Get(name string) (*v1.Deployment, error) {
+	// skeeey: [go-client-informer] get the object from the items of threadSafeMap by the object key
 	obj, exists, err := s.indexer.GetByKey(s.namespace + "/" + name)
 	if err != nil {
 		return nil, err

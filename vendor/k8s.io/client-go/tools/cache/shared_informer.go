@@ -137,6 +137,8 @@ type SharedInformer interface {
 	// between different handlers.
 	// It returns a registration handle for the handler that can be used to remove
 	// the handler again.
+	//
+	// skeeey: [go-client-informer] customized controllers add their event handlers with this
 	AddEventHandler(handler ResourceEventHandler) (ResourceEventHandlerRegistration, error)
 	// AddEventHandlerWithResyncPeriod adds an event handler to the
 	// shared informer with the requested resync period; zero means
@@ -216,10 +218,13 @@ type SharedInformer interface {
 type ResourceEventHandlerRegistration interface{}
 
 // SharedIndexInformer provides add and get Indexers ability based on SharedInformer.
+// skeeey: [go-client-informer] the cache of this informer
 type SharedIndexInformer interface {
 	SharedInformer
 	// AddIndexers add indexers to the informer before it starts.
+	// skeeey: [go-client-informer] allow user to add customized indexer
 	AddIndexers(indexers Indexers) error
+	// skeeey: [go-client-informer] return indexer
 	GetIndexer() Indexer
 }
 
@@ -243,7 +248,9 @@ func NewSharedInformer(lw ListerWatcher, exampleObject runtime.Object, defaultEv
 func NewSharedIndexInformer(lw ListerWatcher, exampleObject runtime.Object, defaultEventHandlerResyncPeriod time.Duration, indexers Indexers) SharedIndexInformer {
 	realClock := &clock.RealClock{}
 	sharedIndexInformer := &sharedIndexInformer{
-		processor:                       &sharedProcessor{clock: realClock},
+		processor: &sharedProcessor{clock: realClock},
+		// skeeey: [go-client-informer] create the cache for this informer
+		// cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}
 		indexer:                         NewIndexer(DeletionHandlingMetaNamespaceKeyFunc, indexers),
 		listerWatcher:                   lw,
 		objectType:                      exampleObject,
@@ -425,14 +432,14 @@ func (s *sharedIndexInformer) Run(stopCh <-chan struct{}) {
 	})
 
 	cfg := &Config{
-		Queue:            fifo,
+		Queue:            fifo, // skeeey: [go-client-informer] the Delta FIFO queue
 		ListerWatcher:    s.listerWatcher,
 		ObjectType:       s.objectType,
 		FullResyncPeriod: s.resyncCheckPeriod,
 		RetryOnError:     false,
 		ShouldResync:     s.processor.shouldResync,
 
-		Process:           s.HandleDeltas,
+		Process:           s.HandleDeltas, // skeeey: [go-client-informer] callback by processDeltas
 		WatchErrorHandler: s.watchErrorHandler,
 	}
 
@@ -440,7 +447,7 @@ func (s *sharedIndexInformer) Run(stopCh <-chan struct{}) {
 		s.startedLock.Lock()
 		defer s.startedLock.Unlock()
 
-		s.controller = New(cfg)
+		s.controller = New(cfg) // skeeey: [go-client-informer] the informer controller
 		s.controller.(*controller).clock = s.clock
 		s.started = true
 	}()
