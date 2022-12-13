@@ -39,6 +39,7 @@ import (
 // RootCACertConfigMapName is name of the configmap which stores certificates
 // to access api-server
 const (
+	// skeeey:[kube-root-ca.crt]
 	RootCACertConfigMapName = "kube-root-ca.crt"
 	DescriptionAnnotation   = "kubernetes.io/description"
 	Description             = "Contains a CA bundle that can be used to verify the kube-apiserver when using internal endpoints such as the internal service IP or kubernetes.default.svc. " +

@@ -77,6 +77,7 @@ func newCertSubPhases() []workflow.Phase {
 	// This loop assumes that GetDefaultCertList() always returns a list of
 	// certificate that is preceded by the CAs that sign them.
 	var lastCACert *certsphase.KubeadmCert
+	// skeeey:[kubeadm] init default certs
 	for _, cert := range certsphase.GetDefaultCertList() {
 		var phase workflow.Phase
 		if cert.CAName == "" {
@@ -243,6 +244,7 @@ func runCAPhase(ca *certsphase.KubeadmCert) func(c workflow.RunData) error {
 		cfg.CertificatesDir = data.CertificateWriteDir()
 		defer func() { cfg.CertificatesDir = data.CertificateDir() }()
 
+		// skeeey:[kubeadm] create root ca
 		// create the new certificate authority (or use existing)
 		return certsphase.CreateCACertAndKeyFiles(ca, cfg)
 	}

@@ -54,6 +54,7 @@ func (f *lastAppliedManager) Update(liveObj, newObj runtime.Object, managed Mana
 	return f.fieldManager.Update(liveObj, newObj, managed, manager)
 }
 
+// TODO (skeeey) server side apply
 // Apply will consider the last-applied annotation
 // for upgrading an object managed by client-side apply to server-side apply
 // without conflicts.

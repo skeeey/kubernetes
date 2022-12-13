@@ -172,10 +172,12 @@ func startRootCACertPublisher(ctx context.Context, controllerContext ControllerC
 		err    error
 	)
 	if controllerContext.ComponentConfig.SAController.RootCAFile != "" {
+		// skeeey:[kube-root-ca.crt] from kube-controller-manager `--root-ca-file` flag
 		if rootCA, err = readCA(controllerContext.ComponentConfig.SAController.RootCAFile); err != nil {
 			return nil, true, fmt.Errorf("error parsing root-ca-file at %s: %v", controllerContext.ComponentConfig.SAController.RootCAFile, err)
 		}
 	} else {
+		// skeeey:[kube-root-ca.crt] from kube-controller-manager `--kubeconfig` flag
 		rootCA = controllerContext.ClientBuilder.ConfigOrDie("root-ca-cert-publisher").CAData
 	}
 

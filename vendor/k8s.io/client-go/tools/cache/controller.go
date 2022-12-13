@@ -184,7 +184,7 @@ func (c *controller) LastSyncResourceVersion() string {
 // also be helpful.
 func (c *controller) processLoop() {
 	for {
-		// skeeey: [go-client-informer] process the poped object, why need this converter?
+		// skeeey: [go-client-informer] process the popped object, why need this converter?
 		obj, err := c.config.Queue.Pop(PopProcessFunc(c.config.Process))
 		if err != nil {
 			if err == ErrFIFOClosed {
@@ -414,7 +414,8 @@ func NewTransformingIndexerInformer(
 func processDeltas(
 	// Object which receives event notifications from the given deltas
 	handler ResourceEventHandler,
-	clientState Store, // skeeey: [go-client-informer] for sharedInformer, it's the indexer of it
+	// skeeey: [go-client-informer] for sharedInformer, it's the indexer of it
+	clientState Store,
 	transformer TransformFunc,
 	deltas Deltas,
 ) error {
@@ -429,6 +430,7 @@ func processDeltas(
 			}
 		}
 
+		// skeeey: [go-client-informer] dispatch the popped object to event handler and store
 		switch d.Type {
 		case Sync, Replaced, Added, Updated:
 			if old, exists, err := clientState.Get(obj); err == nil && exists {

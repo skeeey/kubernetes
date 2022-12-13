@@ -249,7 +249,7 @@ func NewSharedIndexInformer(lw ListerWatcher, exampleObject runtime.Object, defa
 	realClock := &clock.RealClock{}
 	sharedIndexInformer := &sharedIndexInformer{
 		processor: &sharedProcessor{clock: realClock},
-		// skeeey: [go-client-informer] create the cache for this informer
+		// skeeey: [go-client-informer] create the cache (the thread safe store) for this informer
 		// cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}
 		indexer:                         NewIndexer(DeletionHandlingMetaNamespaceKeyFunc, indexers),
 		listerWatcher:                   lw,
@@ -432,14 +432,16 @@ func (s *sharedIndexInformer) Run(stopCh <-chan struct{}) {
 	})
 
 	cfg := &Config{
-		Queue:            fifo, // skeeey: [go-client-informer] the Delta FIFO queue
+		// skeeey: [go-client-informer] the Delta FIFO queue that will be manipulated by reflactor
+		Queue:            fifo,
 		ListerWatcher:    s.listerWatcher,
 		ObjectType:       s.objectType,
 		FullResyncPeriod: s.resyncCheckPeriod,
 		RetryOnError:     false,
 		ShouldResync:     s.processor.shouldResync,
 
-		Process:           s.HandleDeltas, // skeeey: [go-client-informer] callback by processDeltas
+		// skeeey: [go-client-informer] process the popped objects, callback by processDeltas
+		Process:           s.HandleDeltas,
 		WatchErrorHandler: s.watchErrorHandler,
 	}
 
@@ -447,7 +449,8 @@ func (s *sharedIndexInformer) Run(stopCh <-chan struct{}) {
 		s.startedLock.Lock()
 		defer s.startedLock.Unlock()
 
-		s.controller = New(cfg) // skeeey: [go-client-informer] the informer controller
+		// skeeey: [go-client-informer] the informer controller
+		s.controller = New(cfg)
 		s.controller.(*controller).clock = s.clock
 		s.started = true
 	}()
