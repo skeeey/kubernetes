@@ -117,7 +117,7 @@ cluster's shared state through which all other components interact.`,
 			}
 			cliflag.PrintFlags(fs)
 
-			// set default options
+			// skeeey: [kube-apiserver] set default options
 			completedOptions, err := Complete(s)
 			if err != nil {
 				return err
