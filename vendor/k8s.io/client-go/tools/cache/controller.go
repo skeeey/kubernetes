@@ -131,6 +131,7 @@ func (c *controller) Run(stopCh <-chan struct{}) {
 		<-stopCh
 		c.config.Queue.Close()
 	}()
+
 	// skeeey: [go-client-informer] the reflector
 	r := NewReflector(
 		c.config.ListerWatcher,

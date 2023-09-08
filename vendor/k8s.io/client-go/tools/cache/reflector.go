@@ -175,7 +175,8 @@ func NewNamedReflector(name string, lw ListerWatcher, expectedType interface{}, 
 	r := &Reflector{
 		name:          name,
 		listerWatcher: lw,
-		store:         store,
+		// skeeey: [go-client-informer] reflector store is DeltaFIFO queue, it gest the object from informer index(store)
+		store: store,
 		// We used to make the call every 1sec (1 QPS), the goal here is to achieve ~98% traffic reduction when
 		// API server is not healthy. With these parameters, backoff will stop at [30,60) sec interval which is
 		// 0.22 QPS. If we don't backoff for 2min, assume API server is healthy and we reset the backoff.
@@ -265,7 +266,6 @@ func (r *Reflector) ListAndWatch(stopCh <-chan struct{}) error {
 	resyncerrc := make(chan error, 1)
 	cancelCh := make(chan struct{})
 	defer close(cancelCh)
-	// skeeey: [go-client-informer] resync the queue periodly (factory.defaultResync)
 	go func() {
 		resyncCh, cleanup := r.resyncChan()
 		defer func() {
@@ -279,6 +279,9 @@ func (r *Reflector) ListAndWatch(stopCh <-chan struct{}) error {
 			case <-cancelCh:
 				return
 			}
+			// skeeey: [go-client-informer] resync the queue periodically (factory.defaultResync)
+			// the ShouldResync is sharedIndexInformer.processor.shouldResync
+			// resync only happens when an informer has the registered event handlers
 			if r.ShouldResync == nil || r.ShouldResync() {
 				klog.V(4).Infof("%s: forcing resync", r.name)
 				if err := r.store.Resync(); err != nil {

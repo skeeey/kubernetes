@@ -248,6 +248,7 @@ func NewSharedInformer(lw ListerWatcher, exampleObject runtime.Object, defaultEv
 func NewSharedIndexInformer(lw ListerWatcher, exampleObject runtime.Object, defaultEventHandlerResyncPeriod time.Duration, indexers Indexers) SharedIndexInformer {
 	realClock := &clock.RealClock{}
 	sharedIndexInformer := &sharedIndexInformer{
+		// skeeey: [go-client-informer] processor is a list of event handlers
 		processor: &sharedProcessor{clock: realClock},
 		// skeeey: [go-client-informer] create the cache (the thread safe store) for this informer
 		// cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}
@@ -432,7 +433,7 @@ func (s *sharedIndexInformer) Run(stopCh <-chan struct{}) {
 	})
 
 	cfg := &Config{
-		// skeeey: [go-client-informer] the Delta FIFO queue that will be manipulated by reflactor
+		// skeeey: [go-client-informer] the Delta FIFO queue that will be manipulated by reflector
 		Queue:            fifo,
 		ListerWatcher:    s.listerWatcher,
 		ObjectType:       s.objectType,

@@ -137,7 +137,7 @@ func (f *sharedInformerFactory) Start(stopCh <-chan struct{}) {
 		return
 	}
 
-	// skeeey: [go-client-informer] start all registed informer
+	// skeeey: [go-client-informer] start all registered informer
 	for informerType, informer := range f.informers {
 		if !f.startedInformers[informerType] {
 			f.wg.Add(1)
