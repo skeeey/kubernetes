@@ -721,6 +721,7 @@ func (r *Request) Watch(ctx context.Context) (watch.Interface, error) {
 		updateURLMetrics(ctx, r, resp, err)
 		retry.After(ctx, r, resp, err)
 		if err == nil && resp.StatusCode == http.StatusOK {
+			// skeeey:[go-client-informer] return a watcher
 			return r.newStreamWatcher(resp)
 		}
 
@@ -805,6 +806,7 @@ func (r *Request) Stream(ctx context.Context) (io.ReadCloser, error) {
 		return nil, r.err
 	}
 
+	// skeeey:[go-client-limit]
 	if err := r.tryThrottle(ctx); err != nil {
 		return nil, err
 	}
@@ -924,6 +926,7 @@ func (r *Request) request(ctx context.Context, fn func(*http.Request, *http.Resp
 		client = http.DefaultClient
 	}
 
+	// skeeey:[go-client-limit]
 	// Throttle the first try before setting up the timeout configured on the
 	// client. We don't want a throttled client to return timeouts to callers
 	// before it makes a single request.

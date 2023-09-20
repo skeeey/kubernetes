@@ -203,6 +203,7 @@ func (s *WatchServer) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	defer cleanup()
 
 	// begin the stream
+	// skeeey:[go-client-informer] watcher stream
 	w.Header().Set("Content-Type", s.MediaType)
 	w.Header().Set("Transfer-Encoding", "chunked")
 	w.WriteHeader(http.StatusOK)

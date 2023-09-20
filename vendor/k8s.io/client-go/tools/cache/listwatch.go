@@ -87,6 +87,7 @@ func NewFilteredListWatchFromClient(c Getter, resource string, namespace string,
 			Do(context.TODO()).
 			Get()
 	}
+	// skeeey:[go-client-informer] watch with option
 	watchFunc := func(options metav1.ListOptions) (watch.Interface, error) {
 		options.Watch = true
 		optionsModifier(&options)

@@ -55,6 +55,7 @@ type tokenBucketRateLimiter struct {
 	clock Clock
 }
 
+// skeeey:[go-client-limit]
 // NewTokenBucketRateLimiter creates a rate limiter which implements a token bucket approach.
 // The rate limiter allows bursts of up to 'burst' to exceed the QPS, while still maintaining a
 // smoothed qps rate of 'qps'.

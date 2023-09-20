@@ -348,6 +348,7 @@ func RESTClientForConfigAndClient(config *Config, httpClient *http.Client) (*RES
 		return nil, err
 	}
 
+	// skeeey:[go-client-limit]
 	rateLimiter := config.RateLimiter
 	if rateLimiter == nil {
 		qps := config.QPS
