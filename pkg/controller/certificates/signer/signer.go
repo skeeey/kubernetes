@@ -43,6 +43,7 @@ type CSRSigningController struct {
 	dynamicCertReloader   dynamiccertificates.ControllerRunner
 }
 
+// skeeey:[csr-signing] signer kubernetes.io/kubelet-serving
 func NewKubeletServingCSRSigningController(
 	client clientset.Interface,
 	csrInformer certificatesinformers.CertificateSigningRequestInformer,
@@ -52,6 +53,7 @@ func NewKubeletServingCSRSigningController(
 	return NewCSRSigningController("csrsigning-kubelet-serving", capi.KubeletServingSignerName, client, csrInformer, caFile, caKeyFile, certTTL)
 }
 
+// skeeey:[csr-signing] signer kubernetes.io/kube-apiserver-client-kubelet
 func NewKubeletClientCSRSigningController(
 	client clientset.Interface,
 	csrInformer certificatesinformers.CertificateSigningRequestInformer,
@@ -61,6 +63,7 @@ func NewKubeletClientCSRSigningController(
 	return NewCSRSigningController("csrsigning-kubelet-client", capi.KubeAPIServerClientKubeletSignerName, client, csrInformer, caFile, caKeyFile, certTTL)
 }
 
+// skeeey:[csr-signing] signer kubernetes.io/kube-apiserver-client
 func NewKubeAPIServerClientCSRSigningController(
 	client clientset.Interface,
 	csrInformer certificatesinformers.CertificateSigningRequestInformer,
@@ -70,6 +73,7 @@ func NewKubeAPIServerClientCSRSigningController(
 	return NewCSRSigningController("csrsigning-kube-apiserver-client", capi.KubeAPIServerClientSignerName, client, csrInformer, caFile, caKeyFile, certTTL)
 }
 
+// skeeey:[csr-signing] signer kubernetes.io/legacy-unknown
 func NewLegacyUnknownCSRSigningController(
 	client clientset.Interface,
 	csrInformer certificatesinformers.CertificateSigningRequestInformer,
