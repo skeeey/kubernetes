@@ -31,6 +31,7 @@ import (
 	"k8s.io/klog/v2"
 )
 
+// skeeey: [go-client] will be called by clientset.NewForConfig -> rest.HTTPClientFor -> transport.New
 // New returns an http.RoundTripper that will provide the authentication
 // or transport level security defined by the provided Config.
 func New(config *Config) (http.RoundTripper, error) {
@@ -117,6 +118,7 @@ func TLSConfigFor(c *Config) (*tls.Config, error) {
 
 	var dynamicCertLoader func() (*tls.Certificate, error)
 	if c.TLS.ReloadTLSFiles {
+		// skeeey: [go-client-cert-rotation]
 		dynamicCertLoader = cachingCertificateLoader(c.TLS.CertFile, c.TLS.KeyFile)
 	}
 

@@ -148,6 +148,7 @@ func ValidateObjectMeta(objMeta *metav1.ObjectMeta, requiresNamespace bool, name
 	return ValidateObjectMetaAccessor(metadata, requiresNamespace, nameFn, fldPath)
 }
 
+// skeeey:[api validation] validate when creating an object
 // ValidateObjectMetaAccessor validates an object's metadata on creation. It expects that name generation has already
 // been performed.
 // It doesn't return an error for rootscoped resources with namespace, because namespace should already be cleared before.
@@ -229,6 +230,7 @@ func ValidateObjectMetaUpdate(newMeta, oldMeta *metav1.ObjectMeta, fldPath *fiel
 	return ValidateObjectMetaAccessorUpdate(newMetadata, oldMetadata, fldPath)
 }
 
+// skeeey:[api validation] validate when updating an object
 // ValidateObjectMetaAccessorUpdate validates an object's metadata when updated.
 func ValidateObjectMetaAccessorUpdate(newMeta, oldMeta metav1.Object, fldPath *field.Path) field.ErrorList {
 	var allErrs field.ErrorList

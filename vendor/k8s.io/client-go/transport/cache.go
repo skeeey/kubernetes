@@ -70,6 +70,7 @@ func (t tlsCacheKey) String() string {
 		t.insecure, t.caData, t.certData, keyText, t.serverName, t.disableCompression, t.getCert, t.dial)
 }
 
+// skeeey: [go-client-cert-rotation]
 func (c *tlsTransportCache) get(config *Config) (http.RoundTripper, error) {
 	key, canCache, err := tlsConfigKey(config)
 	if err != nil {
@@ -110,6 +111,7 @@ func (c *tlsTransportCache) get(config *Config) (http.RoundTripper, error) {
 	// If we use are reloading files, we need to handle certificate rotation properly
 	// TODO(jackkleeman): We can also add rotation here when config.HasCertCallback() is true
 	if config.TLS.ReloadTLSFiles {
+		// skeeey: [go-client-cert-rotation]
 		dynamicCertDialer := certRotatingDialer(tlsConfig.GetClientCertificate, dial)
 		tlsConfig.GetClientCertificate = dynamicCertDialer.GetClientCertificate
 		dial = dynamicCertDialer.connDialer.DialContext
