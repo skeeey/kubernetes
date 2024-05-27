@@ -327,7 +327,8 @@ func NewConfig(codecs serializer.CodecFactory) *Config {
 	lifecycleSignals := newLifecycleSignals()
 
 	return &Config{
-		Serializer:                  codecs,
+		Serializer: codecs,
+		// skeeey: [kube-apiserver] the server config (4) -- http request filter chain
 		BuildHandlerChainFunc:       DefaultBuildHandlerChain,
 		HandlerChainWaitGroup:       new(utilwaitgroup.SafeWaitGroup),
 		LegacyAPIGroupPrefixes:      sets.NewString(DefaultLegacyAPIPrefix),
@@ -610,6 +611,7 @@ func (c completedConfig) New(name string, delegationTarget DelegationTarget) (*G
 		return c.BuildHandlerChainFunc(handler, c.Config)
 	}
 
+	// skeeey: [kube-apiserver] start to build the all handlers (director) with DefaultBuildHandlerChain (handlerChainBuilder)
 	apiServerHandler := NewAPIServerHandler(name, c.Serializer, handlerChainBuilder, delegationTarget.UnprotectedHandler())
 
 	s := &GenericAPIServer{
@@ -805,6 +807,7 @@ func BuildHandlerChainWithStorageVersionPrecondition(apiHandler http.Handler, c 
 	return DefaultBuildHandlerChain(handler, c)
 }
 
+// skeeey: [kube-apiserver] build http handler
 func DefaultBuildHandlerChain(apiHandler http.Handler, c *Config) http.Handler {
 	handler := filterlatency.TrackCompleted(apiHandler)
 	handler = genericapifilters.WithAuthorization(handler, c.Authorization.Authorizer, c.Serializer)

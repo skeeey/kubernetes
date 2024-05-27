@@ -316,6 +316,7 @@ type Cacher struct {
 	expiredBookmarkWatchers []*cacheWatcher
 }
 
+// skeeey: [kube-apiserver] install default rest apis (config storage) (3-4-6) (batch/job) (watch cache)
 // NewCacherFromConfig creates a new Cacher responsible for servicing WATCH and LIST requests from
 // its internal cache and updating its cache in the background based on the
 // given configuration.
@@ -386,6 +387,7 @@ func NewCacherFromConfig(config Config) (*Cacher, error) {
 
 	watchCache := newWatchCache(
 		config.KeyFunc, cacher.processEvent, config.GetAttrsFunc, config.Versioner, config.Indexers, config.Clock, config.GroupResource)
+	// skeeey: [kube-apiserver] install default rest apis (config storage) (3-4-3) (batch/job) (lister-watcher)
 	listerWatcher := NewCacherListerWatcher(config.Storage, config.ResourcePrefix, config.NewListFunc)
 	reflectorName := "storage/cacher.go:" + config.ResourcePrefix
 
@@ -617,10 +619,13 @@ func (c *Cacher) Get(ctx context.Context, key string, opts storage.GetOptions, o
 //
 //	staging/src/k8s.io/apiserver/pkg/util/flowcontrol/request/list_work_estimator.go
 func shouldDelegateList(opts storage.ListOptions) bool {
+	// skeeey: [kube-apiserver] resourceVersion and 0
+	// https://kubernetes.io/docs/reference/using-api/api-concepts/#the-resourceversion-parameter
 	resourceVersion := opts.ResourceVersion
 	pred := opts.Predicate
 	pagingEnabled := utilfeature.DefaultFeatureGate.Enabled(features.APIListChunking)
 	hasContinuation := pagingEnabled && len(pred.Continue) > 0
+	// skeeey: [kube-apiserver] if resourceVersion == "0", ignore the limit
 	hasLimit := pagingEnabled && pred.Limit > 0 && resourceVersion != "0"
 
 	// If resourceVersion is not specified, serve it from underlying
@@ -646,12 +651,14 @@ func (c *Cacher) listItems(listRV uint64, key string, pred storage.SelectionPred
 	return c.watchCache.WaitUntilFreshAndList(listRV, pred.MatcherIndex(), trace)
 }
 
+// skeeey: [kube-apiserver] install default rest apis (storage to REST) (3-6) (list) (cacher) (list)
 // GetList implements storage.Interface
 func (c *Cacher) GetList(ctx context.Context, key string, opts storage.ListOptions, listObj runtime.Object) error {
 	recursive := opts.Recursive
 	resourceVersion := opts.ResourceVersion
 	pred := opts.Predicate
 	if shouldDelegateList(opts) {
+		// skeeey: [kube-apiserver] list from etcd (cacher) (list) list options is required
 		return c.storage.GetList(ctx, key, opts, listObj)
 	}
 
@@ -663,6 +670,7 @@ func (c *Cacher) GetList(ctx context.Context, key string, opts storage.ListOptio
 		return err
 	}
 
+	// skeeey: [kube-apiserver] list from etcd (cacher) (list) cache is not ready
 	if listRV == 0 && !c.ready.check() {
 		// If Cacher is not yet initialized and we don't require any specific
 		// minimal resource version, simply forward the request to storage.
@@ -693,6 +701,7 @@ func (c *Cacher) GetList(ctx context.Context, key string, opts storage.ListOptio
 	}
 	filter := filterWithAttrsFunction(key, pred)
 
+	// skeeey: [kube-apiserver] list from cache (cacher) (list)
 	objs, readResourceVersion, indexUsed, err := c.listItems(listRV, key, pred, trace, recursive)
 	if err != nil {
 		return err
@@ -1107,6 +1116,7 @@ func NewCacherListerWatcher(storage storage.Interface, resourcePrefix string, ne
 	}
 }
 
+// skeeey: [kube-apiserver] install default rest apis (config storage) (3-4-3) (batch/job) (lister-watcher) (list)
 // Implements cache.ListerWatcher interface.
 func (lw *cacherListerWatcher) List(options metav1.ListOptions) (runtime.Object, error) {
 	list := lw.newListFunc()
@@ -1128,6 +1138,7 @@ func (lw *cacherListerWatcher) List(options metav1.ListOptions) (runtime.Object,
 	return list, nil
 }
 
+// skeeey: [kube-apiserver] install default rest apis (config storage) (3-4-3) (batch/job) (lister-watcher) (watch)
 // Implements cache.ListerWatcher interface.
 func (lw *cacherListerWatcher) Watch(options metav1.ListOptions) (watch.Interface, error) {
 	opts := storage.ListOptions{

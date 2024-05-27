@@ -312,6 +312,7 @@ func (jobStatusStrategy) WarningsOnUpdate(ctx context.Context, obj, old runtime.
 	return nil
 }
 
+// skeeey: [kube-apiserver] install default rest apis (storage to REST) (batch/job) (list/watch with labels and fields)
 // JobSelectableFields returns a field set that represents the object for matching purposes.
 func JobToSelectableFields(job *batch.Job) fields.Set {
 	objectMetaFieldsSet := generic.ObjectMetaFieldsSet(&job.ObjectMeta, true)
@@ -330,13 +331,15 @@ func GetAttrs(obj runtime.Object) (labels.Set, fields.Set, error) {
 	return labels.Set(job.ObjectMeta.Labels), JobToSelectableFields(job), nil
 }
 
+// skeeey: [kube-apiserver] install default rest apis (storage to REST) (batch/job) (list/watch filter)
 // MatchJob is the filter used by the generic etcd backend to route
 // watch events from etcd to clients of the apiserver only interested in specific
 // labels/fields.
 func MatchJob(label labels.Selector, field fields.Selector) storage.SelectionPredicate {
 	return storage.SelectionPredicate{
-		Label:    label,
-		Field:    field,
+		Label: label,
+		Field: field,
+		// skeeey: [kube-apiserver] install default rest apis (storage to REST) (batch/job) (list/watch filter)
 		GetAttrs: GetAttrs,
 	}
 }

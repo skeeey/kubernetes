@@ -132,6 +132,7 @@ type GenericAPIServer struct {
 
 	// "Outputs"
 	// Handler holds the handlers being used by this API server
+	// skeeey: [kube-apiserver] sever the http requests
 	Handler *APIServerHandler
 
 	// listedPathProvider is a lister which provides the set of paths to show at /

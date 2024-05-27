@@ -56,13 +56,16 @@ func NewStorage(optsGetter generic.RESTOptionsGetter) (JobStorage, error) {
 var deleteOptionWarnings = "child pods are preserved by default when jobs are deleted; " +
 	"set propagationPolicy=Background to remove them or set propagationPolicy=Orphan to suppress this warning"
 
+// skeeey: [kube-apiserver] install default rest apis (storage to REST) (3-5) (batch/job)
 // REST implements a RESTStorage for jobs against etcd
 type REST struct {
 	*genericregistry.Store
 }
 
+// skeeey: [kube-apiserver] install default rest apis (storage to REST) (3-4) (batch/job)
 // NewREST returns a RESTStorage object that will work against Jobs.
 func NewREST(optsGetter generic.RESTOptionsGetter) (*REST, *StatusREST, error) {
+	// skeeey: [kube-apiserver] install default rest apis (storage to REST) (3-5) (generic.Store)
 	store := &genericregistry.Store{
 		NewFunc:                  func() runtime.Object { return &batch.Job{} },
 		NewListFunc:              func() runtime.Object { return &batch.JobList{} },
@@ -77,6 +80,7 @@ func NewREST(optsGetter generic.RESTOptionsGetter) (*REST, *StatusREST, error) {
 		TableConvertor: printerstorage.TableConvertor{TableGenerator: printers.NewTableGenerator().With(printersinternal.AddHandlers)},
 	}
 	options := &generic.StoreOptions{RESTOptions: optsGetter, AttrFunc: job.GetAttrs}
+	// skeeey: [kube-apiserver] install default rest apis (config storage) (3-4-1) (batch/job)
 	if err := store.CompleteWithOptions(options); err != nil {
 		return nil, nil, err
 	}

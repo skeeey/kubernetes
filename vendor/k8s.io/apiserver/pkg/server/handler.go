@@ -76,6 +76,7 @@ func NewAPIServerHandler(name string, s runtime.NegotiatedSerializer, handlerCha
 		nonGoRestfulMux.NotFoundHandler(notFoundHandler)
 	}
 
+	// skeeey: [kube-apiserver]
 	gorestfulContainer := restful.NewContainer()
 	gorestfulContainer.ServeMux = http.NewServeMux()
 	gorestfulContainer.Router(restful.CurlyRouter{}) // e.g. for proxy/{kind}/{name}/{*}
@@ -93,6 +94,7 @@ func NewAPIServerHandler(name string, s runtime.NegotiatedSerializer, handlerCha
 	}
 
 	return &APIServerHandler{
+		// skeeey: [kube-apiserver] build the all handlers (director) with DefaultBuildHandlerChain
 		FullHandlerChain:   handlerChainBuilder(director),
 		GoRestfulContainer: gorestfulContainer,
 		NonGoRestfulMux:    nonGoRestfulMux,
@@ -119,6 +121,7 @@ type director struct {
 	nonGoRestfulMux    *mux.PathRecorderMux
 }
 
+// skeeey: [kube-apiserver] after the filer chain then dispatch http request
 func (d director) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	path := req.URL.Path
 
@@ -186,5 +189,6 @@ func serviceErrorHandler(s runtime.NegotiatedSerializer, serviceErr restful.Serv
 
 // ServeHTTP makes it an http.Handler
 func (a *APIServerHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// skeeey: [kube-apiserver] server the http request
 	a.FullHandlerChain.ServeHTTP(w, r)
 }

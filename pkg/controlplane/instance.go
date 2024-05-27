@@ -379,8 +379,8 @@ func (c completedConfig) New(delegationTarget genericapiserver.DelegationTarget)
 		ClusterAuthenticationInfo: c.ExtraConfig.ClusterAuthenticationInfo,
 	}
 
+	// skeeey: [kube-apiserver] install default rest apis (storage interface) (legacy) (2)
 	// install legacy rest storage
-
 	if err := m.InstallLegacyAPI(&c, c.GenericConfig.RESTOptionsGetter); err != nil {
 		return nil, err
 	}
@@ -414,6 +414,7 @@ func (c completedConfig) New(delegationTarget genericapiserver.DelegationTarget)
 		admissionregistrationrest.RESTStorageProvider{},
 		eventsrest.RESTStorageProvider{TTL: c.ExtraConfig.EventTTL},
 	}
+	// skeeey: [kube-apiserver] install default rest apis (storage interface) (3)
 	if err := m.InstallAPIs(c.ExtraConfig.APIResourceConfigSource, c.GenericConfig.RESTOptionsGetter, restStorageProviders...); err != nil {
 		return nil, err
 	}
@@ -523,6 +524,7 @@ func (m *Instance) InstallLegacyAPI(c *completedConfig, restOptionsGetter generi
 		ServiceAccountMaxExpiration: c.ExtraConfig.ServiceAccountMaxExpiration,
 		APIAudiences:                c.GenericConfig.Authentication.APIAudiences,
 	}
+	// skeeey: [kube-apiserver] install default rest apis (storage interface) (legacy) (2-1)
 	legacyRESTStorage, apiGroupInfo, err := legacyRESTStorageProvider.NewLegacyRESTStorage(c.ExtraConfig.APIResourceConfigSource, restOptionsGetter)
 	if err != nil {
 		return fmt.Errorf("error building core storage: %v", err)
@@ -564,6 +566,7 @@ func (m *Instance) InstallAPIs(apiResourceConfigSource serverstorage.APIResource
 
 	for _, restStorageBuilder := range restStorageProviders {
 		groupName := restStorageBuilder.GroupName()
+		// skeeey: [kube-apiserver] install default rest apis (storage interface) (3-1)
 		apiGroupInfo, err := restStorageBuilder.NewRESTStorage(apiResourceConfigSource, restOptionsGetter)
 		if err != nil {
 			return fmt.Errorf("problem initializing API group %q : %v", groupName, err)
@@ -662,6 +665,7 @@ var (
 	}
 )
 
+// skeeey: [kube-apiserver] all default resoruces
 // DefaultAPIResourceConfigSource returns default configuration for an APIResource.
 func DefaultAPIResourceConfigSource() *serverstorage.ResourceConfig {
 	ret := serverstorage.NewResourceConfig()

@@ -29,6 +29,7 @@ import (
 	jobstore "k8s.io/kubernetes/pkg/registry/batch/job/storage"
 )
 
+// skeeey: [kube-apiserver] install default rest apis (storage interface) (3-2) (batch)
 type RESTStorageProvider struct{}
 
 func (p RESTStorageProvider) NewRESTStorage(apiResourceConfigSource serverstorage.APIResourceConfigSource, restOptionsGetter generic.RESTOptionsGetter) (genericapiserver.APIGroupInfo, error) {
@@ -56,6 +57,7 @@ func (p RESTStorageProvider) v1Storage(apiResourceConfigSource serverstorage.API
 
 	// jobs
 	if resource := "jobs"; apiResourceConfigSource.ResourceEnabled(batchapiv1.SchemeGroupVersion.WithResource(resource)) {
+		// skeeey: [kube-apiserver] install default rest apis (storage interface) (3-3) (batch/job)
 		jobsStorage, jobsStatusStorage, err := jobstore.NewREST(restOptionsGetter)
 		if err != nil {
 			return storage, err

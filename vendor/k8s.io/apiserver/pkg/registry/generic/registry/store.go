@@ -76,6 +76,7 @@ type GenericStore interface {
 	GetDeleteStrategy() rest.RESTDeleteStrategy
 }
 
+// skeeey: [kube-apiserver] install default rest apis (storage to REST) (3-5) (generic)
 // Store implements k8s.io/apiserver/pkg/registry/rest.StandardStorage. It's
 // intended to be embeddable and allows the consumer to implement any
 // non-generic functions that are required. This object is intended to be
@@ -321,6 +322,7 @@ func (e *Store) GetDeleteStrategy() rest.RESTDeleteStrategy {
 	return e.DeleteStrategy
 }
 
+// skeeey: [kube-apiserver] install default rest apis (storage to REST) (3-6) (list)
 // List returns a list of items matching labels and field according to the
 // store's PredicateFunc.
 func (e *Store) List(ctx context.Context, options *metainternalversion.ListOptions) (runtime.Object, error) {
@@ -332,6 +334,7 @@ func (e *Store) List(ctx context.Context, options *metainternalversion.ListOptio
 	if options != nil && options.FieldSelector != nil {
 		field = options.FieldSelector
 	}
+	// skeeey: [kube-apiserver] install default rest apis (storage to REST) (3-6) (list) (list-predicate)
 	out, err := e.ListPredicate(ctx, e.PredicateFunc(label, field), options)
 	if err != nil {
 		return nil, err
@@ -368,6 +371,7 @@ func (e *Store) ListPredicate(ctx context.Context, p storage.SelectionPredicate,
 		// if we cannot extract a key based on the current context, the optimization is skipped
 	}
 
+	// skeeey: [kube-apiserver] install default rest apis (storage to REST) (3-6) (list) (cacher)
 	err := e.Storage.GetList(ctx, e.KeyRootFunc(ctx), storageOpts, list)
 	return list, storeerr.InterpretListError(err, qualifiedResource)
 }
@@ -1248,6 +1252,7 @@ func (e *Store) finalizeDelete(ctx context.Context, obj runtime.Object, runHooks
 	return status, nil
 }
 
+// skeeey: [kube-apiserver] install default rest apis (storage to REST) (3-7) (watch)
 // Watch makes a matcher for the given label and field, and calls
 // WatchPredicate. If possible, you should customize PredicateFunc to produce
 // a matcher that matches by key. SelectionPredicate does this for you
@@ -1261,6 +1266,7 @@ func (e *Store) Watch(ctx context.Context, options *metainternalversion.ListOpti
 	if options != nil && options.FieldSelector != nil {
 		field = options.FieldSelector
 	}
+	// skeeey: [kube-apiserver] install default rest apis (storage to REST) (3-7) (predicate)
 	predicate := e.PredicateFunc(label, field)
 
 	resourceVersion := ""
@@ -1375,6 +1381,7 @@ func (e *Store) CompleteWithOptions(options *generic.StoreOptions) error {
 		return err
 	}
 
+	// skeeey: [kube-apiserver] install default rest apis (config storage) (3-4-2) (batch/job)
 	opts, err := options.RESTOptions.GetRESTOptions(e.DefaultQualifiedResource)
 	if err != nil {
 		return err
@@ -1442,6 +1449,7 @@ func (e *Store) CompleteWithOptions(options *generic.StoreOptions) error {
 	if e.Storage.Storage == nil {
 		e.Storage.Codec = opts.StorageConfig.Codec
 		var err error
+		// skeeey: [kube-apiserver] init storage (generic)
 		e.Storage.Storage, e.DestroyFunc, err = opts.Decorator(
 			opts.StorageConfig,
 			prefix,

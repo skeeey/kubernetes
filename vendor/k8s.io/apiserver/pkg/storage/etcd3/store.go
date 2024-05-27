@@ -522,6 +522,7 @@ func (s *store) Count(key string) (int64, error) {
 	return getResp.Count, nil
 }
 
+// skeeey: [kube-apiserver] etcd get list
 // GetList implements storage.Interface.
 func (s *store) GetList(ctx context.Context, key string, opts storage.ListOptions, listObj runtime.Object) error {
 	recursive := opts.Recursive

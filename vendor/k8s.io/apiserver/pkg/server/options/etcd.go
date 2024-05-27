@@ -71,8 +71,9 @@ func NewEtcdOptions(backendConfig *storagebackend.Config) *EtcdOptions {
 		DefaultStorageMediaType: "application/json",
 		DeleteCollectionWorkers: 1,
 		EnableGarbageCollection: true,
-		EnableWatchCache:        true,
-		DefaultWatchCacheSize:   100,
+		// skeeey: [kube-apiserver] watching with cache
+		EnableWatchCache:      true,
+		DefaultWatchCacheSize: 100,
 	}
 	options.StorageConfig.CountMetricPollPeriod = time.Minute
 	return options
@@ -316,6 +317,7 @@ func (f *StorageFactoryRestOptionsFactory) GetRESTOptions(resource schema.GroupR
 		CountMetricPollPeriod:     f.Options.StorageConfig.CountMetricPollPeriod,
 		StorageObjectCountTracker: f.Options.StorageConfig.StorageObjectCountTracker,
 	}
+	// skeeey: [kube-apiserver] install default rest apis (config storage) (3-4-3) (batch/job) (watch cache)
 	if f.Options.EnableWatchCache {
 		sizes, err := ParseWatchCacheSizes(f.Options.WatchCacheSizes)
 		if err != nil {
@@ -328,6 +330,7 @@ func (f *StorageFactoryRestOptionsFactory) GetRESTOptions(resource schema.GroupR
 		if ok && size <= 0 {
 			ret.Decorator = generic.UndecoratedStorage
 		} else {
+			// skeeey: [kube-apiserver] install default rest apis (config storage) (3-4-4) (batch/job) (watch cache)
 			ret.Decorator = genericregistry.StorageWithCacher()
 		}
 	}

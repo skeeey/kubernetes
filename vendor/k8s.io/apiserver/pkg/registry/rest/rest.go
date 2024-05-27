@@ -274,6 +274,7 @@ type Watcher interface {
 	Watch(ctx context.Context, options *metainternalversion.ListOptions) (watch.Interface, error)
 }
 
+// skeeey: [kube-apiserver] storage handle the RESTful request
 // StandardStorage is an interface covering the common verbs. Provided for testing whether a
 // resource satisfies the normal storage methods. Use Storage when passing opaque storage objects.
 type StandardStorage interface {

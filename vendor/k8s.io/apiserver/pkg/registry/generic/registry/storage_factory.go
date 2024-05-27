@@ -66,6 +66,7 @@ func StorageWithCacher() generic.StorageDecorator {
 			Indexers:       indexers,
 			Codec:          storageConfig.Codec,
 		}
+		// skeeey: [kube-apiserver] install default rest apis (config storage) (3-4-5) (batch/job) (watch cache)
 		cacher, err := cacherstorage.NewCacherFromConfig(cacherConfig)
 		if err != nil {
 			return nil, func() {}, err

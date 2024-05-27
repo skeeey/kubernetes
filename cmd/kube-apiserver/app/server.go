@@ -128,6 +128,7 @@ cluster's shared state through which all other components interact.`,
 				return utilerrors.NewAggregate(errs)
 			}
 
+			// skeeey: [kube-apiserver] start the kube apiserver
 			return Run(completedOptions, genericapiserver.SetupSignalHandler())
 		},
 		Args: func(cmd *cobra.Command, args []string) error {
@@ -162,6 +163,7 @@ func Run(completeOptions completedServerRunOptions, stopCh <-chan struct{}) erro
 
 	klog.InfoS("Golang settings", "GOGC", os.Getenv("GOGC"), "GOMAXPROCS", os.Getenv("GOMAXPROCS"), "GOTRACEBACK", os.Getenv("GOTRACEBACK"))
 
+	// skeeey: [kube-apiserver] configure the apiserver
 	server, err := CreateServerChain(completeOptions)
 	if err != nil {
 		return err
@@ -177,6 +179,7 @@ func Run(completeOptions completedServerRunOptions, stopCh <-chan struct{}) erro
 
 // CreateServerChain creates the apiservers connected via delegation.
 func CreateServerChain(completedOptions completedServerRunOptions) (*aggregatorapiserver.APIAggregator, error) {
+	// skeeey: [kube-apiserver] the server config (1)
 	kubeAPIServerConfig, serviceResolver, pluginInitializer, err := CreateKubeAPIServerConfig(completedOptions)
 	if err != nil {
 		return nil, err
@@ -190,11 +193,13 @@ func CreateServerChain(completedOptions completedServerRunOptions) (*aggregatora
 	}
 
 	notFoundHandler := notfoundhandler.New(kubeAPIServerConfig.GenericConfig.Serializer, genericapifilters.NoMuxAndDiscoveryIncompleteKey)
+	// skeeey: [kube-apiserver] extensions server
 	apiExtensionsServer, err := createAPIExtensionsServer(apiExtensionsConfig, genericapiserver.NewEmptyDelegateWithCustomHandler(notFoundHandler))
 	if err != nil {
 		return nil, err
 	}
 
+	// skeeey: [kube-apiserver] kube-api server
 	kubeAPIServer, err := CreateKubeAPIServer(kubeAPIServerConfig, apiExtensionsServer.GenericAPIServer)
 	if err != nil {
 		return nil, err
@@ -205,17 +210,21 @@ func CreateServerChain(completedOptions completedServerRunOptions) (*aggregatora
 	if err != nil {
 		return nil, err
 	}
+	// skeeey: [kube-apiserver] aggregator server
 	aggregatorServer, err := createAggregatorServer(aggregatorConfig, kubeAPIServer.GenericAPIServer, apiExtensionsServer.Informers)
 	if err != nil {
 		// we don't need special handling for innerStopCh because the aggregator server doesn't create any go routines
 		return nil, err
 	}
 
+	// skeeey: [kube-apiserver] the request will be handled by aggregatorServer -> kubeAPIServer -> apiExtensionsServer -> notFoundHandler
+	// skeeey: [kube-apiserver] delegation pattern
 	return aggregatorServer, nil
 }
 
 // CreateKubeAPIServer creates and wires a workable kube-apiserver
 func CreateKubeAPIServer(kubeAPIServerConfig *controlplane.Config, delegateAPIServer genericapiserver.DelegationTarget) (*controlplane.Instance, error) {
+	// skeeey: [kube-apiserver] install default rest apis (1)
 	kubeAPIServer, err := kubeAPIServerConfig.Complete().New(delegateAPIServer)
 	if err != nil {
 		return nil, err
@@ -244,7 +253,7 @@ func CreateKubeAPIServerConfig(s completedServerRunOptions) (
 	error,
 ) {
 	proxyTransport := CreateProxyTransport()
-
+	// skeeey: [kube-apiserver] the server config (2)
 	genericConfig, versionedInformers, serviceResolver, pluginInitializers, admissionPostStartHook, storageFactory, err := buildGenericConfig(s.ServerRunOptions, proxyTransport)
 	if err != nil {
 		return nil, nil, nil, err
@@ -355,7 +364,9 @@ func buildGenericConfig(
 	storageFactory *serverstorage.DefaultStorageFactory,
 	lastErr error,
 ) {
+	// skeeey: [kube-apiserver] the server config (3)
 	genericConfig = genericapiserver.NewConfig(legacyscheme.Codecs)
+	// skeeey: [kube-apiserver] register the default resources (1)
 	genericConfig.MergedResourceConfig = controlplane.DefaultAPIResourceConfigSource()
 
 	if lastErr = s.GenericServerRunOptions.ApplyTo(genericConfig); lastErr != nil {
@@ -396,6 +407,7 @@ func buildGenericConfig(
 	kubeVersion := version.Get()
 	genericConfig.Version = &kubeVersion
 
+	// skeeey: [kube-apiserver] use storgae factory to build RESTOptionsGetter (storage handle the RESTful request) (1)
 	storageFactoryConfig := kubeapiserver.NewStorageFactoryConfig()
 	storageFactoryConfig.APIResourceConfig = genericConfig.MergedResourceConfig
 	completedStorageFactoryConfig, err := storageFactoryConfig.Complete(s.Etcd)
@@ -415,6 +427,7 @@ func buildGenericConfig(
 	} else {
 		storageFactory.StorageConfig.Transport.TracerProvider = oteltrace.NewNoopTracerProvider()
 	}
+	// skeeey: [kube-apiserver] use storgae factory to build RESTOptionsGetter (storage handle the RESTful request) (2)
 	if lastErr = s.Etcd.ApplyWithStorageFactoryTo(storageFactory, genericConfig); lastErr != nil {
 		return
 	}
