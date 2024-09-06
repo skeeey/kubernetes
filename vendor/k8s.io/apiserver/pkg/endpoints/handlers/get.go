@@ -166,6 +166,7 @@ func getRequestOptions(req *http.Request, scope *RequestScope, into runtime.Obje
 	return scope.ParameterCodec.DecodeParameters(query, scope.Kind.GroupVersion(), into)
 }
 
+// skeeey: [kube-apiserver] list resources
 func ListResource(r rest.Lister, rw rest.Watcher, scope *RequestScope, forceWatch bool, minRequestTimeout time.Duration) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		// For performance tracking purposes.

@@ -75,6 +75,7 @@ func New(fn ListPageFunc) *ListPager {
 // the full list instead. The Limit field on options, if unset, will default to the page size.
 func (p *ListPager) List(ctx context.Context, options metav1.ListOptions) (runtime.Object, bool, error) {
 	if options.Limit == 0 {
+		// skeeey: [go-client-inform] using pagesize as the default limit
 		options.Limit = p.PageSize
 	}
 	requestedResourceVersion := options.ResourceVersion
